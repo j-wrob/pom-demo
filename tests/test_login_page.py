@@ -2,7 +2,7 @@
 Test suite for login page testing
 """
 import pytest
-from selenium_warmup.pomdemo.src.pages.login_page import LoginPage
+from src.pages.login_page import LoginPage
 
 @pytest.mark.usefixtures()
 @pytest.mark.parametrize(
