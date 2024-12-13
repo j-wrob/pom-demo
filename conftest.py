@@ -10,6 +10,12 @@ from selenium.webdriver import FirefoxOptions
 from selenium.webdriver import FirefoxService
 
 
+def pytest_configure(config):
+    config.addinivalue_line("markers", "negative: mark test as a negative scenario test")
+    config.addinivalue_line("markers", "positive: mark test as a positive scenario test")
+
+    config.my_global_variable = "Shared data from pytest config"
+
 def pytest_addoption(parser):
     """
     Function to use in order to define browser in pytest command
