@@ -14,6 +14,7 @@ class LoginPage(PageFactory):
     locators = {
         'user_name': ('XPATH', '//*[@id="username"]'),
         'password': ('XPATH', '//*[@id="password"]'),
+        'header': ('XPATH', '//h2[text()="Login Page"]'),
         'login_btn': ('CSS', 'button[type="submit"]'),
         'invalid_login_label': (
             'XPATH', '//div[contains(text(), "Your username is invalid!")]'),
@@ -23,7 +24,8 @@ class LoginPage(PageFactory):
 
     def get_url(self):
         self.driver.get(self.url)
-        logger.info("URL get - successfully")
+        self.header.visibility_of_element_located()
+        logger.info("LoginPage URL get - successfully")
 
     def type_username(self, username: str):
         self.user_name.set_text(username)
