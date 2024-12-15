@@ -22,8 +22,8 @@ def test_invalid_login(driver, username, password):
     login_page = LoginPage(driver=driver)
 
     login_page.get_url()
-    login_page.select_username("bad_username")
-    login_page.select_password("bad_password")
+    login_page.type_username("bad_username")
+    login_page.type_password("bad_password")
     login_page.click_login()
     login_page.verify_invalid_login()
 
@@ -35,10 +35,13 @@ def test_valid_login(driver):
     login_page = LoginPage(driver=driver)
 
     login_page.get_url()
-    login_page.select_username("tomsmith")
-    login_page.select_password("SuperSecretPassword!")
+    login_page.type_username("tomsmith")
+    login_page.type_password("SuperSecretPassword!")
     login_page.click_login()
     login_page.verify_valid_login()
+
+def test_to_generate_fail(driver):
+    assert 1 == 0
 
 def test_just_to_be_skipped(driver, request):
     """

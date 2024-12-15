@@ -1,3 +1,6 @@
 selenium
+selenium-page-factory
+pytest
 webdriver-manager
-seleniumpagefactory
+pytest-reportlog
+pytest-html
