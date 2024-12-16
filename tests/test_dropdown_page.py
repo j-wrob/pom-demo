@@ -10,9 +10,9 @@ def test_loading_page(driver):
     dropdown_page.get_url()
 
 @pytest.mark.parametrize(
-    "element", ["1","2"]
+    "value", ["1","2"]
 )
-def test_selecting_elements(driver, element):
+def test_selecting_elements(driver, value):
     dropdown_page = DropdownPage(driver)
     dropdown_page.get_url()
-    dropdown_page.select_element_by_value(element)
+    dropdown_page.select_from_dropdown_by_value(value)
