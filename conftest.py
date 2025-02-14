@@ -1,4 +1,9 @@
+import logging
+import os
 import pytest
+
+from datetime import datetime
+
 from src.driver_manager.driver_manager import DriverManager
 
 
@@ -46,12 +51,45 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture(name="driver")
-def init_driver_manager(get_x_value,
-                        dynamic_browser):
+def init_driver_manager(dynamic_browser, test_logger):
     """
     Function yields driver instance
     Browser type is solved from dynamic_browser fixture
     """
     new_driver = DriverManager(dynamic_browser).get_driver()
+    test_logger.info(f"Web driver created: {new_driver}")
     yield new_driver
     new_driver.quit()
+
+# Ensure the directory for the current test run is created once per session
+@pytest.fixture(scope='session', autouse=True)
+def setup_session_logging(request):
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    base_log_dir = os.path.join("logs", f"test_run_{now}")
+    os.makedirs(base_log_dir, exist_ok=True)
+    request.config.base_log_dir = base_log_dir
+
+
+@pytest.fixture(scope='function', name="test_logger")
+def test_logger(request):
+    # Create a specific directory for each test within the test run directory
+    test_name = request.node.name
+    test_directory = os.path.join(request.config.base_log_dir, test_name)
+    os.makedirs(test_directory, exist_ok=True)
+
+    log_file_path = os.path.join(test_directory, "test.log")
+
+    # Setup specific logger for the test
+    logger = logging.getLogger(test_name)
+    logger.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(log_file_path, mode='w')
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
+                                  '%Y-%m-%d %H:%M:%S')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    yield logger
+
+    # Do cleanup after the test is done
+    file_handler.close()
+    logger.removeHandler(file_handler)

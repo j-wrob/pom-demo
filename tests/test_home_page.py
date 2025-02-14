@@ -5,8 +5,9 @@ import pytest
 from src.pages.homepage import HomePage
 
 
-def test_loading_page(driver):
-    home_page = HomePage(driver)
+
+def test_loading_page(driver, test_logger):
+    home_page = HomePage(driver, test_logger)
     home_page.get_url()
 
 def test_to_generate_fail():

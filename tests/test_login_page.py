@@ -14,11 +14,11 @@ from src.pages.loginpage import LoginPage
         ("tomsmith", "")
     ]
 )
-def test_invalid_login(driver, username, password):
+def test_invalid_login(driver, test_logger, username, password):
     """
     Tests to verify invalid login scenarios
     """
-    login_page = LoginPage(driver=driver)
+    login_page = LoginPage(driver, test_logger)
 
     login_page.get_url()
     login_page.type_username("bad_username")
@@ -27,11 +27,11 @@ def test_invalid_login(driver, username, password):
     login_page.verify_invalid_login()
 
 @pytest.mark.positive
-def test_valid_login(driver):
+def test_valid_login(driver, test_logger):
     """
     Test to verify valid login scenario
     """
-    login_page = LoginPage(driver=driver)
+    login_page = LoginPage(driver, test_logger)
 
     login_page.get_url()
     login_page.type_username("tomsmith")
