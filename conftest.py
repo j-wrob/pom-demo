@@ -1,19 +1,10 @@
 import pytest
-import os
-
-from selenium import webdriver
-from selenium.webdriver import ChromeService
-from selenium.webdriver import ChromeOptions
-from webdriver_manager.chrome import ChromeDriverManager
-
-from selenium.webdriver import FirefoxOptions
-from selenium.webdriver import FirefoxService
+from src.driver_manager.driver_manager import DriverManager
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "negative: mark test as a negative scenario test")
     config.addinivalue_line("markers", "positive: mark test as a positive scenario test")
-
     config.my_global_variable = "Shared data from pytest config"
 
 def pytest_addoption(parser):
@@ -24,61 +15,43 @@ def pytest_addoption(parser):
     parser.addoption(
         "--browser",
         action="store",
-        default="chrome",
-        help="chrome, edge, firefox, safari"
+        default=None,
+        help="use browser dynamically: all /chrome / edge / firefox / safari"
     )
 
-# METHOD 1
-# @pytest.fixture(name="driver", scope="module", name="driver")
-# def driver_init(request):
-#     """
-#     Init driver according to pytest command arg --browser
-#     """
-#     browser = request.config.getoption("--browser")
-#     if browser == 'chrome':
-#
-#         #default would be chrome
-#         options = ChromeOptions()
-#         service = ChromeService(ChromeDriverManager().install())
-#         webdriver_class = webdriver.Chrome
-#
-#     if browser == 'firefox':
-#         install_dir = "/snap/firefox/current/usr/lib/firefox"
-#         driver_loc = os.path.join(install_dir, "geckodriver")
-#         binary_loc = os.path.join(install_dir, "firefox")
-#         service = FirefoxService(driver_loc)
-#
-#         options = FirefoxOptions()
-#         options.binary_location = binary_loc
-#         webdriver_class = webdriver.Firefox
-#
-#     with webdriver_class(service=service, options=options) as driver:
-#         yield driver
-#         driver.quit()
-
-# METHOD 2
-@pytest.fixture(params=["chrome", "firefox"], scope="module", name="driver")
-def driver_init(request):
+def pytest_generate_tests(metafunc):
     """
-    Parametrize browsers in fixture
+    Metafunc - metadata object used to modify the parameters of a test function.
+    In this case fixture dynamic_browser appears in metafunc.fixturenames
+    Because it's requested by init_driver_manager, but it's not defined anywhere.
+    Since it's not defined the metafunc creates parameter dynamic_browser with various values
     """
-    browser = request.param
 
-    if browser == 'chrome':
-        options = ChromeOptions()
-        service = ChromeService(ChromeDriverManager().install())
-        webdriver_class = webdriver.Chrome
+    if "dynamic_browser" in metafunc.fixturenames:
+        browser_value = metafunc.config.getoption("browser")
 
-    if browser == 'firefox':
-        install_dir = "/snap/firefox/current/usr/lib/firefox"
-        driver_loc = os.path.join(install_dir, "geckodriver")
-        binary_loc = os.path.join(install_dir, "firefox")
-        service = FirefoxService(driver_loc)
+        if browser_value is None:
+            raise Exception("Browser not specified! Use --browser flag.")
+        elif browser_value == "all":
+            # All available browsers
+            params = ["chrome", "firefox", "edge", "safari"]
+            metafunc.parametrize("dynamic_browser", params, scope="function")
+        elif browser_value in ["chrome", "firefox", "edge", "safari"]:
+            # If browser is specified, just provide it directly
+            params = [browser_value]
+            metafunc.parametrize("dynamic_browser", params, scope="function")
+        else:
+            # No browser - no tests
+            raise Exception("Browser from outside of chrome/firefox/edge/safari")
 
-        options = FirefoxOptions()
-        options.binary_location = binary_loc
-        webdriver_class = webdriver.Firefox
 
-    with webdriver_class(service=service, options=options) as driver:
-        yield driver
-    driver.quit()
+@pytest.fixture(name="driver")
+def init_driver_manager(get_x_value,
+                        dynamic_browser):
+    """
+    Function yields driver instance
+    Browser type is solved from dynamic_browser fixture
+    """
+    new_driver = DriverManager(dynamic_browser).get_driver()
+    yield new_driver
+    new_driver.quit()
